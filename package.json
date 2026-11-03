@@ -1,0 +1,105 @@
+{
+  "name": "cafeteria-menu",
+  "productName": "구내식당 메뉴",
+  "version": "0.1.0",
+  "description": "메뉴 막대/트레이에서 한국 시간 기준 오늘의 구내식당 메뉴를 보여주는 데스크톱 앱",
+  "main": "src/main/main.js",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "demo": "electron . --demo",
+    "test": "node --test \"test/*.test.js\"",
+    "fixtures": "node scripts/make-fixtures.js",
+    "build:native": "node scripts/build-native.js",
+    "verify:real": "node scripts/verify-real.js",
+    "verify:e2e": "node scripts/e2e-local.js",
+    "verify:live": "node scripts/probe-live.js",
+    "verify:leaks": "node scripts/leak-check.js",
+    "verify:package": "node scripts/verify-package.js",
+    "profile:install": "node scripts/install-profile.js",
+    "pack:mac": "npm run build:native && electron-builder --mac --publish never && npm run verify:package",
+    "pack:win": "electron-builder --win --publish never && npm run verify:package"
+  },
+  "dependencies": {
+    "@napi-rs/keyring": "2.1.2",
+    "pngjs": "7.0.0"
+  },
+  "devDependencies": {
+    "electron": "45.2.1",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "io.github.cafeteria-menu",
+    "productName": "CafeteriaMenu",
+    "artifactName": "cafeteria-menu-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "package.json",
+      "src/**/*",
+      "assets/**/*",
+      "fixtures/demo-week.json",
+      "!**/*.local.json",
+      "!**/profile.json"
+    ],
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "LSUIElement": true,
+        "CFBundleDisplayName": "구내식당 메뉴"
+      },
+      "extraResources": [
+        {
+          "from": "build/native/mac/vision-ocr",
+          "to": "native/vision-ocr"
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "extraResources": [
+        {
+          "from": "native/win/win-ocr.ps1",
+          "to": "native/win-ocr.ps1"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "shortcutName": "구내식당 메뉴"
+    },
+    "copyright": ""
+  }
+}

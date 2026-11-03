@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-package:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Windows 러너에는 한국어 OCR 언어 팩이 없으므로 설치를 시도한다(실패해도 테스트는 해당 항목만 건너뜀)
+      - name: Install Korean OCR capability (Windows)
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $cap = Get-WindowsCapability -Online | Where-Object Name -like 'Language.OCR*ko-KR*'
+          if ($cap -and $cap.State -ne 'Installed') { Add-WindowsCapability -Online -Name $cap.Name }
+          Get-WindowsCapability -Online | Where-Object Name -like 'Language.OCR*' | Format-Table Name, State
+
+      - name: Build macOS Vision helper
+        if: runner.os == 'macOS'
+        run: npm run build:native
+
+      - name: Unit and integration tests
+        run: npm test
+
+      - name: Windows OCR smoke test on synthetic menu
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        shell: pwsh
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File native/win/win-ocr.ps1 fixtures/synthetic-week.png
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: npx electron-builder --mac --publish never
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: npx electron-builder --win --publish never
+
+      - name: Verify package contents
+        run: npm run verify:package
+
+      - name: Packaged app smoke test (demo screenshot)
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            BIN="$(ls -d dist/mac*/CafeteriaMenu.app)/Contents/MacOS/CafeteriaMenu"
+          else
+            BIN="dist/win-unpacked/CafeteriaMenu.exe"
+          fi
+          "$BIN" --demo --date 2030-03-05 --screenshot "$PWD/demo-screenshot.png"
+          test -s demo-screenshot.png
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cafeteria-menu-${{ runner.os }}
+          if-no-files-found: warn
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.exe
+            demo-screenshot.png

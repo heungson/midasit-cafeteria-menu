@@ -1,0 +1,30 @@
+{
+  "name": "예시 그룹웨어 (값을 실제 환경에 맞게 바꾸세요)",
+  "baseUrl": "https://groupware.example",
+  "login": {
+    "pagePath": "/login-page-path",
+    "submitPath": "/login-submit-path",
+    "orgLookupPath": "/org-domain-lookup-path",
+    "loginIdSuffix": "",
+    "fields": {
+      "usernameField": "{input}",
+      "fullLoginIdField": "{loginId}",
+      "passwordField": "{password}",
+      "languageField": "ko"
+    },
+    "errorCodes": {
+      "USER_NOT_FOUND_CODE": "user_unknown",
+      "WRONG_PASSWORD_CODE": "auth_failed"
+    },
+    "sessionExpiredMarkers": ["/login-page-path?expired"],
+    "extraAuthMarkers": ["OTP", "2차 인증", "추가 인증", "인증번호"]
+  },
+  "board": {
+    "listPath": "/board-list-path?board=BOARD_ID",
+    "articlePath": "/article-view-path?article={id}&board=BOARD_ID",
+    "articleIdParam": "article",
+    "titleKeyword": "주간 식단",
+    "frameNames": ["bodyFrameName"],
+    "editorDataIds": ["EDITOR_ELEMENT_ID"]
+  }
+}
